@@ -5,6 +5,7 @@ import { isJsDoc } from './js'
 import { State } from './state'
 import { cssLanguages } from './languages'
 import { getLanguageBoundaries } from './getLanguageBoundaries'
+import { isExDoc } from './ex'
 
 export function isCssDoc(state: State, doc: TextDocument): boolean {
   const userCssLanguages = Object.keys(state.editor.userLanguages).filter((lang) =>
@@ -19,7 +20,7 @@ export function isCssContext(state: State, doc: TextDocument, position: Position
     return true
   }
 
-  if (isHtmlDoc(state, doc) || isVueDoc(doc) || isSvelteDoc(doc) || isJsDoc(state, doc)) {
+  if (isHtmlDoc(state, doc) || isVueDoc(doc) || isSvelteDoc(doc) || isJsDoc(state, doc) || isExDoc(state, doc)) {
     let str = doc.getText({
       start: { line: 0, character: 0 },
       end: position,

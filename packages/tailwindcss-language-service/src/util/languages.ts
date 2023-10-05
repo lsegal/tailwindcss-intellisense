@@ -56,6 +56,10 @@ export const jsLanguages = [
   'typescriptreact',
 ]
 
+export const exLanguages = [
+  'elixir'
+]
+
 export const specialLanguages = ['vue', 'svelte']
 
 export const languages = [...cssLanguages, ...htmlLanguages, ...jsLanguages, ...specialLanguages]

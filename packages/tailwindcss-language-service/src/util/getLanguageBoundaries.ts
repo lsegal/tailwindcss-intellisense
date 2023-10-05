@@ -7,8 +7,9 @@ import { isJsDoc } from './js'
 import moo from 'moo'
 import Cache from 'tmp-cache'
 import { getTextWithoutComments } from './doc'
+import { isExDoc } from './ex'
 
-export type LanguageBoundary = { type: 'html' | 'js' | 'css' | (string & {}); range: Range }
+export type LanguageBoundary = { type: 'html' | 'js' | 'css' | 'heex' | 'ex' | (string & {}); range: Range }
 
 let htmlScriptTypes = [
   // https://v3-migration.vuejs.org/breaking-changes/inline-template-attribute.html#option-1-use-script-tag
@@ -21,11 +22,13 @@ let htmlScriptTypes = [
 
 let text = { text: { match: /[^]/, lineBreaks: true } }
 let styledCssBlockStart = { match: /css(?:\.resolve|\.global)?`/, push: 'styledCssBlock' }
+let exHeexBlockStart = { match: /~H"""/, push: 'exHeexBlock' }
 
 let states = {
   main: {
     cssBlockStart: { match: /<style(?=[>\s])/, push: 'cssBlock' },
     cssStyledBlockStart: styledCssBlockStart,
+    exHeexBlockStart: exHeexBlockStart,
     jsBlockStart: { match: '<script', push: 'jsBlock' },
     ...text,
   },
@@ -35,6 +38,10 @@ let states = {
     attrStartDouble: { match: '"', push: 'attrDouble' },
     attrStartSingle: { match: "'", push: 'attrSingle' },
     interp: { match: '{', push: 'interp' },
+    ...text,
+  },
+  exHeexBlock: {
+    cssBlockEnd: { match: '"""', pop: 1 },
     ...text,
   },
   styledCssBlock: {
@@ -97,7 +104,7 @@ let states = {
   script: {
     jsBlockEnd: { match: /<\/script\s*>/, pop: 1 },
     ...text,
-  },
+  }
 }
 
 let vueStates = {
@@ -149,13 +156,17 @@ export function getLanguageBoundaries(
   }
 
   let isJs = isJsDoc(state, doc)
+  let isEx = isExDoc(state, doc)
 
-  let defaultType = isVueDoc(doc)
+  let defaultType = 
+    isVueDoc(doc)
     ? 'none'
     : isHtmlDoc(state, doc) || isSvelteDoc(doc)
     ? 'html'
     : isJs
     ? 'jsx'
+    : isEx
+    ? 'ex'
     : null
 
   if (defaultType === null) {

@@ -36,6 +36,7 @@ import {
   addPixelEquivalentsToMediaQuery,
   addPixelEquivalentsToValue,
 } from './util/pixelEquivalents'
+import { isExContext, isExDoc } from './util/ex'
 
 let isUtil = (className) =>
   Array.isArray(className.__info)
@@ -624,7 +625,7 @@ async function provideClassNameCompletions(
     return provideAtApplyCompletions(state, document, position, context)
   }
 
-  if (isHtmlContext(state, document, position) || isJsxContext(state, document, position)) {
+  if (isHtmlContext(state, document, position) || isJsxContext(state, document, position) || isExContext(state, document, position)) {
     return provideClassAttributeCompletions(state, document, position, context)
   }
 
@@ -1275,8 +1276,16 @@ async function provideEmmetCompletions(
 
   const isHtml = !isJsDoc(state, document) && isHtmlContext(state, document, position)
   const isJs = isJsDoc(state, document) || isJsxContext(state, document, position)
+  const isEx = isExDoc(state, document) || isExContext(state, document, position)
 
-  const syntax = isHtml ? 'html' : isJs ? 'jsx' : null
+  const syntax = 
+    isHtml ? 
+    'html' : 
+    isJs ? 
+    'jsx' : 
+    isEx ?
+    'ex' :
+    null
 
   if (syntax === null) {
     return null
